@@ -1,61 +1,55 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
 import BlurFade from "@/components/magicui/blur-fade";
+import ShimmerButton from "@/components/magicui/shimmer-button";
+import DotPattern from "@/components/magicui/dot-pattern";
 
 export default function Waitlist() {
   return (
-    <section id="cta" className="py-24 px-4 sm:px-6 lg:px-8 relative">
-      {/* Subtle divider */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+    <section id="cta" className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Dot pattern background */}
+      <DotPattern
+        className="opacity-40 [mask-image:radial-gradient(ellipse_at_center,white,transparent_70%)]"
+        width={20}
+        height={20}
+        cr={1}
+        color="rgba(245, 158, 11, 0.3)"
+      />
 
-      {/* Background glow */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-[600px] h-[300px] bg-amber-500/[0.06] rounded-full blur-[100px]" />
-      </div>
-
-      <BlurFade>
-        <div className="relative max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white">
+      <div className="relative z-10 max-w-3xl mx-auto text-center">
+        <BlurFade delay={0}>
+          <p className="text-sm font-semibold uppercase tracking-widest text-amber-600 mb-3">
+            Get Started Today
+          </p>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
             Ready to hire your
             <br />
-            <span className="bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent">
-              AI employee?
-            </span>
+            <span className="text-amber-500">AI employee?</span>
           </h2>
-          <p className="mt-4 text-lg text-neutral-400 max-w-xl mx-auto">
-            Join 2,400+ businesses that are saving 20+ hours per week with
-            DeskAgents.
+          <p className="mt-5 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
+            Stop spending hours on tasks an AI can handle. Pick a plan and have
+            your agent running within 24 hours.
           </p>
+        </BlurFade>
 
-          {/* Email capture */}
-          <div className="mt-10 max-w-md mx-auto">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                window.location.href = "#pricing";
-              }}
-              className="flex gap-2"
+        <BlurFade delay={0.2}>
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <ShimmerButton href="#pricing">View Pricing</ShimmerButton>
+            <a
+              href="mailto:hello@deskagents.com"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl border border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 transition-all text-lg font-medium hover:shadow-sm"
             >
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white placeholder:text-neutral-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all text-sm"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-semibold hover:from-amber-400 hover:to-orange-400 transition-all flex items-center gap-2 text-sm shadow-lg shadow-amber-500/20"
-              >
-                Get Started
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-            <p className="mt-3 text-xs text-neutral-600">
-              No credit card required. Cancel anytime.
-            </p>
+              Talk to Us
+            </a>
           </div>
-        </div>
-      </BlurFade>
+        </BlurFade>
+
+        <BlurFade delay={0.3}>
+          <p className="mt-8 text-sm text-slate-400">
+            No credit card required · Free 14-day trial · Cancel anytime
+          </p>
+        </BlurFade>
+      </div>
     </section>
   );
 }
