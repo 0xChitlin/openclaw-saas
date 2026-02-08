@@ -1,6 +1,34 @@
-# DeskAgents Runtime Server
+# DeskAgents — Agent Runtime Backend
 
-The backend that actually runs AI agents for customers.
+The production backend that manages AI agents for DeskAgents SaaS customers.
+
+## Architecture
+
+```
+server/
+├── src/
+│   ├── index.ts              # Express server (port 4000)
+│   ├── db/
+│   │   ├── schema.sql        # SQLite schema
+│   │   └── init.ts           # Database initialization + helpers
+│   ├── agents/
+│   │   ├── manager.ts        # Agent lifecycle manager (start/stop/restart/health)
+│   │   └── workers/
+│   │       ├── email-agent.ts     # IMAP email monitoring + categorization + daily digest
+│   │       ├── support-agent.ts   # Auto-reply support + FAQ + escalation
+│   │       └── scheduler-agent.ts # Cron-based scheduled tasks + reports
+│   ├── routes/
+│   │   ├── admin.ts          # Admin API (JWT protected)
+│   │   ├── customer.ts       # Customer API (JWT protected)
+│   │   ├── provision.ts      # Customer + agent provisioning
+│   │   ├── health.ts         # Health check endpoint
+│   │   └── auth.ts           # Login/auth
+│   └── middleware/
+│       └── auth.ts           # JWT auth middleware
+├── Dockerfile
+├── package.json
+└── tsconfig.json
+```
 
 ## Quick Start
 
@@ -8,101 +36,61 @@ The backend that actually runs AI agents for customers.
 # Install dependencies
 npm install
 
-# Copy env file
-cp .env.example .env
-
 # Build
 npm run build
 
-# Start
-./start.sh
-# or: npm start
+# Run
+npm start
 ```
 
-Server runs on `http://localhost:4000`.
+Server starts on `http://localhost:4000`.
 
 ## API Endpoints
 
 ### Public
 - `GET /api/health` — Health check
-- `POST /api/auth/login` — Get JWT token
-- `POST /api/provision` — Create customer + agent (from Stripe webhook)
+- `POST /api/auth/login` — Login (admin or customer)
+- `POST /api/provision` — Create customer + agent
 
 ### Admin (JWT required, admin role)
 - `GET /api/admin/customers` — List all customers
-- `GET /api/admin/agents` — List all agents with status
+- `GET /api/admin/agents` — List all agents with runtime status
 - `POST /api/admin/agents/:id/start` — Start an agent
 - `POST /api/admin/agents/:id/stop` — Stop an agent
 - `POST /api/admin/agents/:id/restart` — Restart an agent
 - `GET /api/admin/agents/:id/logs` — Get agent logs
-- `GET /api/admin/stats` — Dashboard stats
+- `GET /api/admin/stats` — Dashboard statistics
 
 ### Customer (JWT required, customer role)
-- `GET /api/customer/agent` — Get my agent status
-- `GET /api/customer/logs` — My agent's recent activity
+- `GET /api/customer/agent` — My agent status
+- `GET /api/customer/logs` — My agent activity logs
 - `PATCH /api/customer/agent` — Pause/resume my agent
 - `POST /api/customer/integrations` — Add integration
 
-## Default Admin Login
+## Agent Templates
+
+### email-manager
+Monitors IMAP inbox, categorizes emails (urgent/follow-up/newsletter/spam), sends daily digest.
+
+### customer-support
+Auto-replies to common support questions using FAQ matching, escalates unknown issues.
+
+### scheduler
+Runs cron-based tasks — daily reports, weekly summaries, custom schedules.
+
+## Default Admin
+
+On first run, a default admin is created:
 - Email: `admin@deskagents.com`
-- Password: Value of `ADMIN_PASSWORD` env var (default: `deskagents-admin-2024`)
-
-## Architecture
-
-```
-server/
-├── src/
-│   ├── index.ts              # Express server entry point
-│   ├── db/
-│   │   ├── schema.sql        # SQLite schema
-│   │   └── init.ts           # Database initialization
-│   ├── agents/
-│   │   ├── manager.ts        # Agent lifecycle manager
-│   │   └── workers/
-│   │       ├── email-agent.ts     # Email monitoring + categorization
-│   │       ├── support-agent.ts   # Auto-reply support agent
-│   │       └── scheduler-agent.ts # Scheduled tasks (cron)
-│   ├── middleware/
-│   │   └── auth.ts           # JWT authentication
-│   └── routes/
-│       ├── auth.ts           # Login endpoint
-│       ├── admin.ts          # Admin management API
-│       ├── customer.ts       # Customer self-service API
-│       ├── provision.ts      # Agent provisioning
-│       └── health.ts         # Health check
-├── data/                     # SQLite database (auto-created)
-├── package.json
-├── tsconfig.json
-├── Dockerfile
-├── start.sh
-└── .env.example
-```
-
-## Agent Types
-
-### Email Manager
-- Connects to IMAP inbox
-- Polls for new emails every 5 minutes
-- Categorizes: urgent, follow-up, newsletter, spam, general
-- Sends daily digest email
-
-### Customer Support
-- Monitors inbox for support emails
-- Auto-replies using FAQ matching
-- Escalates unmatched questions to owner
-- Tracks response times
-
-### Scheduler
-- Runs cron-based scheduled tasks
-- Daily activity reports
-- Weekly summaries
-- Custom scheduled tasks
+- Password: `deskagents-admin-2024` (change via `ADMIN_PASSWORD` env var)
 
 ## Docker
 
 ```bash
-# From project root
+# Build and run with docker-compose (from project root)
 docker-compose up --build
 ```
 
-This starts both the Next.js frontend (port 3000) and the Express backend (port 4000).
+## Environment Variables
+
+See `.env.example` for all options.

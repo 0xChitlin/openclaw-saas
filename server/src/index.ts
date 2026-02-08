@@ -3,7 +3,7 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import { initDb } from "./db/init";
+import { getDb } from "./db/init";
 import { getAgentManager } from "./agents/manager";
 import authRoutes from "./routes/auth";
 import adminRoutes from "./routes/admin";
@@ -39,7 +39,7 @@ app.use("/api/provision", provisionRoutes);
 app.use("/api/health", healthRoutes);
 
 // Root
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.json({
     name: "DeskAgents Runtime Server",
     version: "1.0.0",
@@ -62,37 +62,29 @@ app.get("/", (req, res) => {
   });
 });
 
-async function main() {
-  // Initialize database
-  await initDb();
-  console.log("[Server] Database ready");
+// Initialize database
+getDb();
 
-  // Start server
-  const server = app.listen(PORT, () => {
-    console.log(`\n🚀 DeskAgents Server running on http://localhost:${PORT}`);
-    console.log(`📊 Health: http://localhost:${PORT}/api/health`);
-    console.log(`🔧 Admin API: http://localhost:${PORT}/api/admin`);
-    console.log("");
+// Start server
+const server = app.listen(PORT, () => {
+  console.log(`\n🚀 DeskAgents Server running on http://localhost:${PORT}`);
+  console.log(`📊 Health: http://localhost:${PORT}/api/health`);
+  console.log(`🔧 Admin API: http://localhost:${PORT}/api/admin`);
+  console.log("");
+});
+
+// Graceful shutdown
+async function shutdown(signal: string) {
+  console.log(`\n[Server] ${signal} received, shutting down...`);
+  const manager = getAgentManager();
+  await manager.shutdown();
+  server.close(() => {
+    console.log("[Server] Closed");
+    process.exit(0);
   });
-
-  // Graceful shutdown
-  async function shutdown(signal: string) {
-    console.log(`\n[Server] ${signal} received, shutting down...`);
-    const manager = getAgentManager();
-    await manager.shutdown();
-    server.close(() => {
-      console.log("[Server] Closed");
-      process.exit(0);
-    });
-  }
-
-  process.on("SIGINT", () => shutdown("SIGINT"));
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
 }
 
-main().catch((err) => {
-  console.error("[Server] Fatal error:", err);
-  process.exit(1);
-});
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 export default app;

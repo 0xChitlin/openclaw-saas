@@ -5,19 +5,18 @@ import { authMiddleware, adminOnly } from "../middleware/auth";
 
 const router = Router();
 
-// All admin routes require auth + admin role
 router.use(authMiddleware);
 router.use(adminOnly);
 
-// GET /api/admin/customers — list all customers
-router.get("/customers", (req: Request, res: Response): void => {
+// GET /api/admin/customers
+router.get("/customers", (_req: Request, res: Response): void => {
   const db = getDb();
   const customers = db.prepare("SELECT * FROM customers ORDER BY created_at DESC").all();
   res.json({ customers });
 });
 
-// GET /api/admin/agents — list all agents with status
-router.get("/agents", (req: Request, res: Response): void => {
+// GET /api/admin/agents
+router.get("/agents", (_req: Request, res: Response): void => {
   const db = getDb();
   const agents = db
     .prepare(
@@ -37,53 +36,44 @@ router.get("/agents", (req: Request, res: Response): void => {
   res.json({ agents: enriched });
 });
 
-// POST /api/admin/agents/:id/start — start an agent
+// POST /api/admin/agents/:id/start
 router.post("/agents/:id/start", async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-  const manager = getAgentManager();
-
+  const id = String(req.params.id);
   try {
-    await manager.startAgent(id);
+    await getAgentManager().startAgent(id);
     res.json({ success: true, message: `Agent ${id} started` });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
-// POST /api/admin/agents/:id/stop — stop an agent
+// POST /api/admin/agents/:id/stop
 router.post("/agents/:id/stop", async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-  const manager = getAgentManager();
-
+  const id = String(req.params.id);
   try {
-    await manager.stopAgent(id);
+    await getAgentManager().stopAgent(id);
     res.json({ success: true, message: `Agent ${id} stopped` });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
-// POST /api/admin/agents/:id/restart — restart an agent
+// POST /api/admin/agents/:id/restart
 router.post("/agents/:id/restart", async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-  const manager = getAgentManager();
-
+  const id = String(req.params.id);
   try {
-    await manager.restartAgent(id);
+    await getAgentManager().restartAgent(id);
     res.json({ success: true, message: `Agent ${id} restarted` });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
-// GET /api/admin/agents/:id/logs — get agent logs
+// GET /api/admin/agents/:id/logs
 router.get("/agents/:id/logs", (req: Request, res: Response): void => {
-  const { id } = req.params;
-  const limit = parseInt(String(req.query.limit)) || 100;
-  const offset = parseInt(String(req.query.offset)) || 0;
+  const id = String(req.params.id);
+  const limit = parseInt(String(req.query.limit || "100"), 10);
+  const offset = parseInt(String(req.query.offset || "0"), 10);
 
   const db = getDb();
   const logs = db
@@ -102,8 +92,8 @@ router.get("/agents/:id/logs", (req: Request, res: Response): void => {
   res.json({ logs, total: total.count });
 });
 
-// GET /api/admin/stats — dashboard stats
-router.get("/stats", (req: Request, res: Response): void => {
+// GET /api/admin/stats
+router.get("/stats", (_req: Request, res: Response): void => {
   const db = getDb();
   const manager = getAgentManager();
 
@@ -123,7 +113,6 @@ router.get("/stats", (req: Request, res: Response): void => {
       .get() as any
   ).count;
 
-  // Revenue estimate based on plans
   const planCounts = db
     .prepare(
       "SELECT plan, COUNT(*) as count FROM customers WHERE status = 'active' GROUP BY plan"

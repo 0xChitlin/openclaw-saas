@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import nodemailer from "nodemailer";
-import { dbAll, logAgent } from "../../db/init";
+import { getDb, logAgent } from "../../db/init";
 import type { AgentWorker } from "../manager";
 
 interface ScheduledTask {
@@ -8,7 +8,7 @@ interface ScheduledTask {
   name: string;
   cron: string;
   type: "daily-report" | "weekly-summary" | "custom";
-  config: any;
+  config: Record<string, unknown>;
 }
 
 export class SchedulerAgent implements AgentWorker {
@@ -34,7 +34,7 @@ export class SchedulerAgent implements AgentWorker {
         }
 
         const job = cron.schedule(task.cron, () => {
-          this.executeTask(task).catch((err) => {
+          this.executeTask(task).catch((err: Error) => {
             logAgent(this.agentId, "error", `Task "${task.name}" failed: ${err.message}`);
           });
         });
@@ -71,14 +71,14 @@ export class SchedulerAgent implements AgentWorker {
       {
         id: "daily-report",
         name: "Daily Activity Report",
-        cron: "0 18 * * *", // 6 PM daily
+        cron: "0 18 * * *",
         type: "daily-report",
         config: {},
       },
       {
         id: "weekly-summary",
         name: "Weekly Summary",
-        cron: "0 9 * * 1", // Monday 9 AM
+        cron: "0 9 * * 1",
         type: "weekly-summary",
         config: {},
       },
@@ -105,76 +105,70 @@ export class SchedulerAgent implements AgentWorker {
   }
 
   private async generateDailyReport(): Promise<void> {
-    const logs = dbAll(
-      `SELECT * FROM agent_logs
-       WHERE agent_id = ? AND date(created_at) = date('now')
-       ORDER BY created_at DESC`,
-      [this.agentId]
-    );
+    const db = getDb();
+
+    const logs = db
+      .prepare(
+        `SELECT * FROM agent_logs
+         WHERE agent_id = ? AND date(created_at) = date('now')
+         ORDER BY created_at DESC`
+      )
+      .all(this.agentId) as any[];
 
     const actions = logs.filter((l: any) => l.type === "action");
     const errors = logs.filter((l: any) => l.type === "error");
 
-    const report = `
-📊 Daily Activity Report — ${new Date().toLocaleDateString()}
-
-Agent: ${this.agentId}
-Total log entries today: ${logs.length}
-Actions taken: ${actions.length}
-Errors: ${errors.length}
-
-Recent Actions:
-${actions
-  .slice(0, 10)
-  .map((a: any) => `  • ${a.message}`)
-  .join("\n") || "  (none)"}
-
-${errors.length > 0 ? `\nErrors:\n${errors.map((e: any) => `  ⚠️ ${e.message}`).join("\n")}` : ""}
-
-— DeskAgents Scheduler
-`.trim();
+    const report = [
+      `Daily Activity Report - ${new Date().toLocaleDateString()}`,
+      `Agent: ${this.agentId}`,
+      `Total log entries today: ${logs.length}`,
+      `Actions taken: ${actions.length}`,
+      `Errors: ${errors.length}`,
+      "",
+      "Recent Actions:",
+      ...(actions.slice(0, 10).map((a: any) => `  - ${a.message}`)),
+      ...(errors.length > 0 ? ["", "Errors:", ...errors.map((e: any) => `  ! ${e.message}`)] : []),
+    ].join("\n");
 
     logAgent(this.agentId, "action", `Daily report generated: ${actions.length} actions, ${errors.length} errors`);
 
     if (this.config.report_email) {
-      await this.sendEmail(this.config.report_email, `📊 Daily Report — ${new Date().toLocaleDateString()}`, report);
+      await this.sendEmail(this.config.report_email, `Daily Report - ${new Date().toLocaleDateString()}`, report);
     }
   }
 
   private async generateWeeklySummary(): Promise<void> {
-    const logs = dbAll(
-      `SELECT type, COUNT(*) as count FROM agent_logs
-       WHERE agent_id = ? AND created_at >= datetime('now', '-7 days')
-       GROUP BY type`,
-      [this.agentId]
-    );
+    const db = getDb();
 
-    const summary = logs.reduce((acc: Record<string, number>, row: any) => {
-      acc[row.type] = row.count;
-      return acc;
-    }, {} as Record<string, number>);
+    const logs = db
+      .prepare(
+        `SELECT type, COUNT(*) as count FROM agent_logs
+         WHERE agent_id = ? AND created_at >= datetime('now', '-7 days')
+         GROUP BY type`
+      )
+      .all(this.agentId) as any[];
+
+    const summary: Record<string, number> = {};
+    for (const row of logs) {
+      summary[row.type] = row.count;
+    }
 
     const total = Object.values(summary).reduce((a, b) => a + b, 0);
 
-    const report = `
-📈 Weekly Summary — Week of ${new Date().toLocaleDateString()}
-
-Agent: ${this.agentId}
-
-Breakdown:
-  ℹ️  Info: ${summary.info || 0}
-  ⚡ Actions: ${summary.action || 0}
-  ⚠️  Errors: ${summary.error || 0}
-
-Total events: ${total}
-
-— DeskAgents Scheduler
-`.trim();
+    const report = [
+      `Weekly Summary - Week of ${new Date().toLocaleDateString()}`,
+      `Agent: ${this.agentId}`,
+      "",
+      `Info: ${summary.info || 0}`,
+      `Actions: ${summary.action || 0}`,
+      `Errors: ${summary.error || 0}`,
+      `Total events: ${total}`,
+    ].join("\n");
 
     logAgent(this.agentId, "action", "Weekly summary generated");
 
     if (this.config.report_email) {
-      await this.sendEmail(this.config.report_email, `📈 Weekly Summary — ${new Date().toLocaleDateString()}`, report);
+      await this.sendEmail(this.config.report_email, `Weekly Summary - ${new Date().toLocaleDateString()}`, report);
     }
   }
 
