@@ -82,7 +82,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-950 text-white">
       <DashboardNav userName={userName} currentPage="onboarding" />
 
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">

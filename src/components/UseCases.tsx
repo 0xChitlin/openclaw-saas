@@ -1,63 +1,56 @@
-const useCases = [
+"use client";
+
+import { motion } from "framer-motion";
+import { Store, Rocket, Building2 } from "lucide-react";
+
+const audiences = [
   {
-    emoji: "🏪",
+    icon: Store,
     title: "Small Business Owners",
     description:
-      "Stop drowning in admin work. Your AI employee handles invoicing follow-ups, appointment scheduling, and customer inquiries while you run your business.",
-    stats: "Save 20+ hours/week",
+      "Stop drowning in admin. Your AI handles invoicing follow-ups, appointment scheduling, and customer inquiries while you run your business.",
   },
   {
-    emoji: "🚀",
+    icon: Rocket,
     title: "Solopreneurs",
     description:
-      "Scale without hiring. From managing your inbox to updating your CRM, get the productivity of a full team at a fraction of the cost.",
-    stats: "10x your output",
+      "Scale without hiring. From inbox management to CRM updates, get the output of a full team at a fraction of the cost.",
   },
   {
-    emoji: "🏢",
-    title: "Agencies & Teams",
+    icon: Building2,
+    title: "Agencies",
     description:
-      "Deploy AI agents for each client. Automate Kintone workflows, generate reports, and keep every project on track — automatically.",
-    stats: "Manage 3x more clients",
+      "Deploy AI agents for each client. Automate workflows, generate reports, and manage more clients without adding headcount.",
   },
 ];
 
 export default function UseCases() {
   return (
-    <section id="use-cases" className="py-24 px-4 sm:px-6 lg:px-8 relative">
-      {/* Subtle background accent */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-950/10 to-transparent pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Section header */}
+    <section id="use-cases" className="py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-indigo-400 font-semibold text-sm uppercase tracking-wider mb-3">
-            Built For You
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Who is this <span className="gradient-text">for?</span>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
+            Who it&apos;s for
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-slate-500 max-w-2xl mx-auto">
             If you spend hours on repetitive tasks, you need an AI employee.
           </p>
         </div>
 
-        {/* Use case cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {useCases.map((useCase) => (
-            <div
-              key={useCase.title}
-              className="card-hover gradient-border rounded-2xl bg-gray-900/80 p-8 backdrop-blur-sm"
+          {audiences.map((item, idx) => (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: idx * 0.1 }}
+              className="rounded-xl border border-slate-200 bg-white p-8 hover:shadow-lg hover:shadow-slate-100 transition-shadow duration-300"
             >
-              <div className="text-4xl mb-4">{useCase.emoji}</div>
-              <h3 className="text-xl font-bold mb-3">{useCase.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                {useCase.description}
-              </p>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm font-medium">
-                ⚡ {useCase.stats}
-              </div>
-            </div>
+              <item.icon className="w-8 h-8 text-amber-500 mb-4" strokeWidth={1.5} />
+              <h3 className="text-lg font-semibold text-slate-900 mb-3">{item.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">{item.description}</p>
+            </motion.div>
           ))}
         </div>
       </div>

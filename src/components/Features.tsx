@@ -1,75 +1,95 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { Mail, Calendar, Headphones, Database, Workflow, Shield } from "lucide-react";
+
 const features = [
   {
-    icon: "📧",
+    icon: Mail,
     title: "Email Management",
     description:
-      "Your AI reads, categorizes, drafts replies, and flags urgent messages. Never miss an important email again.",
+      "Reads, categorizes, and drafts replies. Flags urgent messages so nothing slips through.",
   },
   {
-    icon: "📅",
+    icon: Calendar,
     title: "Calendar & Scheduling",
     description:
-      "Automatic meeting scheduling, conflict resolution, and smart reminders. Your calendar runs itself.",
+      "Books meetings, resolves conflicts, and sends reminders. Your calendar runs itself.",
   },
   {
-    icon: "💬",
+    icon: Headphones,
     title: "Customer Support",
     description:
-      "24/7 AI-powered responses across WhatsApp, Telegram, and email. Your customers get instant answers.",
+      "24/7 responses across email, WhatsApp, and Telegram. Customers get instant, accurate answers.",
   },
   {
-    icon: "📊",
+    icon: Database,
     title: "Data Entry & CRM",
     description:
-      "Automate Kintone, spreadsheets, and database updates. No more manual data entry — ever.",
+      "Updates spreadsheets, Kintone, and databases automatically. No more manual entry.",
   },
   {
-    icon: "🔄",
+    icon: Workflow,
     title: "Workflow Automation",
     description:
-      "Connect your tools and create automated workflows. If-this-then-that, but powered by AI that actually understands context.",
+      "Connects your tools into automated workflows. AI that understands context, not just triggers.",
   },
   {
-    icon: "🛡️",
+    icon: Shield,
     title: "Enterprise Security",
     description:
-      "Your data stays yours. Isolated instances, encrypted storage, and SOC 2-ready architecture.",
+      "Isolated instances, encrypted storage, and SOC 2-ready architecture. Your data stays yours.",
   },
 ];
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+};
 
 export default function Features() {
   return (
     <section id="features" className="py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Section header */}
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-indigo-400 font-semibold text-sm uppercase tracking-wider mb-3">
-            Everything Automated
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            One AI agent. <span className="gradient-text">Endless capabilities.</span>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
+            Everything your business needs, automated
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Your DeskAgent learns your business and handles the repetitive work,
-            so your team can focus on growth.
+          <p className="mt-4 text-lg text-slate-500 max-w-2xl mx-auto">
+            One AI agent that learns your business and handles the work you shouldn&apos;t be doing yourself.
           </p>
         </div>
 
-        {/* Feature grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           {features.map((feature) => (
-            <div
+            <motion.div
               key={feature.title}
-              className="card-hover rounded-2xl border border-gray-800/60 bg-gray-900/50 p-6 backdrop-blur-sm"
+              variants={itemVariants}
+              className="rounded-xl border border-slate-200 bg-white p-6 hover:shadow-lg hover:shadow-slate-100 transition-shadow duration-300"
             >
-              <div className="text-3xl mb-4">{feature.icon}</div>
-              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <feature.icon className="w-6 h-6 text-amber-500 mb-4" strokeWidth={1.5} />
+              <h3 className="text-base font-semibold text-slate-900 mb-2">{feature.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
                 {feature.description}
               </p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

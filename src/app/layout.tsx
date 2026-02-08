@@ -7,11 +7,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "DeskAgents — Your AI Employees",
   description:
-    "Managed AI agents that handle email, calendar, customer support, and data entry — so you can focus on growing your business.",
+    "Managed AI agents that handle email, calendar, support, and data entry for your business.",
   openGraph: {
     title: "DeskAgents — Your AI Employees",
     description:
-      "Managed AI agents for non-technical users. Automate everything from email to Kintone workflows.",
+      "Managed AI agents that handle email, calendar, support, and data entry for your business.",
     type: "website",
   },
 };
@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark scroll-smooth">
-      <body className={`${inter.className} bg-gray-950 text-white antialiased`}>
+    <html lang="en" className="scroll-smooth">
+      <body className={`${inter.className} bg-white text-slate-900 antialiased`}>
         {children}
       </body>
     </html>

@@ -1,69 +1,59 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 const steps = [
   {
-    number: "01",
+    number: "1",
     title: "Sign Up",
-    description:
-      "Create your account and tell us about your business. No technical knowledge required — just answer a few simple questions.",
+    description: "Choose your plan and tell us what you need automated.",
   },
   {
-    number: "02",
-    title: "Connect Your Tools",
-    description:
-      "Link your email, calendar, Kintone, and messaging apps. We handle all the setup with guided walkthroughs.",
+    number: "2",
+    title: "We Set Up",
+    description: "Our team configures your AI agent within 24 hours.",
   },
   {
-    number: "03",
-    title: "Train Your Agent",
-    description:
-      "Tell your AI what to do in plain English. \"Reply to support emails within 5 minutes\" or \"Update Kintone when a deal closes.\"",
-  },
-  {
-    number: "04",
-    title: "Let It Work",
-    description:
-      "Your agent runs 24/7, handling tasks automatically. Review its activity in a simple dashboard and refine as needed.",
+    number: "3",
+    title: "Sit Back",
+    description: "Your agent works 24/7 handling tasks while you focus on growth.",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
-        {/* Section header */}
+    <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-indigo-400 font-semibold text-sm uppercase tracking-wider mb-3">
-            Simple Setup
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Up and running in <span className="gradient-text">5 minutes</span>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
+            How it works
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            No developers needed. No complex configuration. Just plain English.
+          <p className="mt-4 text-lg text-slate-500">
+            Three steps. No technical skills required.
           </p>
         </div>
 
-        {/* Steps */}
-        <div className="space-y-8">
-          {steps.map((step, idx) => (
-            <div
-              key={step.number}
-              className="flex items-start gap-6 group"
-            >
-              {/* Step number */}
-              <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/30 flex items-center justify-center">
-                <span className="text-indigo-400 font-bold text-lg">{step.number}</span>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+          {/* Connecting line (desktop only) */}
+          <div className="hidden md:block absolute top-10 left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] h-px bg-slate-300" />
 
-              {/* Content */}
-              <div className="flex-1 pb-8 border-b border-gray-800/50 last:border-0">
-                <h3 className="text-lg font-semibold mb-2 group-hover:text-indigo-300 transition">
-                  {step.title}
-                </h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  {step.description}
-                </p>
+          {steps.map((step, idx) => (
+            <motion.div
+              key={step.number}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: idx * 0.15 }}
+              className="text-center relative"
+            >
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-500 text-white text-lg font-bold mb-4 relative z-10">
+                {step.number}
               </div>
-            </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">{step.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed max-w-xs mx-auto">
+                {step.description}
+              </p>
+            </motion.div>
           ))}
         </div>
       </div>
