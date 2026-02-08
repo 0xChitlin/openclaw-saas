@@ -98,6 +98,26 @@ export async function POST(request: NextRequest) {
     console.log(
       `[Webhook] New customer: ${newCustomer.email} (${newCustomer.tier})`
     );
+
+    // Also provision on the backend agent runtime
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    try {
+      await fetch(`${backendUrl}/api/provision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: newCustomer.email,
+          name: newCustomer.name,
+          plan: newCustomer.tier || "starter",
+          stripe_id: newCustomer.stripeCustomerId,
+          template: "email-manager",
+        }),
+      });
+      console.log(`[Webhook] Backend provision called for ${newCustomer.email}`);
+    } catch (err) {
+      console.error("[Webhook] Failed to provision on backend:", err);
+      // Don't fail the webhook — the customer is still created locally
+    }
   }
 
   return NextResponse.json({ received: true });

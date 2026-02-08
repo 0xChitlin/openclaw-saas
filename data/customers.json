@@ -22,5 +22,17 @@
     "integrations": ["email", "calendar", "messaging"],
     "onboarded": true,
     "createdAt": "2026-01-10T08:00:00Z"
+  },
+  {
+    "id": "cust_003",
+    "email": "sarah@techstartup.io",
+    "password": "startup2026",
+    "name": "Sarah Chen",
+    "company": "TechStartup.io",
+    "plan": "team",
+    "agentStatus": "error",
+    "integrations": ["email", "calendar"],
+    "onboarded": true,
+    "createdAt": "2026-02-01T14:00:00Z"
   }
 ]

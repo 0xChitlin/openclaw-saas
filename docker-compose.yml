@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:4000
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-deskagents-secret-change-me}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-deskagents-admin-2024}
+      - FRONTEND_URL=http://localhost:3000
+      - DB_PATH=/app/data/deskagents.db
+    volumes:
+      - agent-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  agent-data:
