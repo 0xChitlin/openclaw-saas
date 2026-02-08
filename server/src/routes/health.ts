@@ -6,10 +6,10 @@ const router = Router();
 
 router.get("/", (_req: Request, res: Response): void => {
   try {
-    const db = getDb();
+    const db: any = getDb();
     const manager = getAgentManager();
     const result = db.exec("SELECT 1 as ok");
-    const dbOk = result.length > 0;
+    const dbOk = Array.isArray(result) && result.length > 0;
     const running = manager.listRunning();
     res.json({
       status: "ok",
