@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 const plans = [
   {
     name: "Individual",
@@ -12,8 +16,10 @@ const plans = [
       "5 workflow automations",
       "Email support",
     ],
-    cta: "Join Waitlist",
+    tier: "individual",
+    cta: "Get Started",
     popular: false,
+    isEnterprise: false,
   },
   {
     name: "Business",
@@ -29,8 +35,10 @@ const plans = [
       "Priority support",
       "Custom training",
     ],
-    cta: "Join Waitlist",
+    tier: "business",
+    cta: "Get Started",
     popular: true,
+    isEnterprise: false,
   },
   {
     name: "Enterprise",
@@ -47,12 +55,39 @@ const plans = [
       "Dedicated account manager",
       "Custom integrations",
     ],
-    cta: "Contact Sales",
+    tier: "enterprise",
+    cta: "Contact Us",
     popular: false,
+    isEnterprise: true,
   },
 ];
 
 export default function Pricing() {
+  const [loadingTier, setLoadingTier] = useState<string | null>(null);
+
+  async function handleCheckout(tier: string) {
+    setLoadingTier(tier);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier }),
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Something went wrong. Please try again.");
+      }
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setLoadingTier(null);
+    }
+  }
+
   return (
     <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-950/10 to-transparent pointer-events-none" />
@@ -96,16 +131,36 @@ export default function Pricing() {
                 <span className="text-gray-500">{plan.period}</span>
               </div>
 
-              <a
-                href="#waitlist"
-                className={`block w-full text-center py-3 rounded-xl font-semibold transition-all mb-8 ${
-                  plan.popular
-                    ? "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500"
-                    : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-                }`}
-              >
-                {plan.cta}
-              </a>
+              {plan.isEnterprise ? (
+                <a
+                  href="mailto:hello@deskagents.com?subject=Enterprise%20Inquiry"
+                  className="block w-full text-center py-3 rounded-xl font-semibold transition-all mb-8 bg-gray-800 hover:bg-gray-700 text-gray-300"
+                >
+                  {plan.cta}
+                </a>
+              ) : (
+                <button
+                  onClick={() => handleCheckout(plan.tier)}
+                  disabled={loadingTier === plan.tier}
+                  className={`block w-full text-center py-3 rounded-xl font-semibold transition-all mb-8 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    plan.popular
+                      ? "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500"
+                      : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                  }`}
+                >
+                  {loadingTier === plan.tier ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Processing...
+                    </span>
+                  ) : (
+                    plan.cta
+                  )}
+                </button>
+              )}
 
               <ul className="space-y-3">
                 {plan.features.map((feature) => (

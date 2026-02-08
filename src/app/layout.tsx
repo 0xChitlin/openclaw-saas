@@ -5,11 +5,11 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "OpenClaw SaaS — Your AI Employee. No Code Required.",
+  title: "DeskAgents — Your AI Employees",
   description:
     "Managed AI agents that handle email, calendar, customer support, and data entry — so you can focus on growing your business.",
   openGraph: {
-    title: "OpenClaw SaaS — Your AI Employee",
+    title: "DeskAgents — Your AI Employees",
     description:
       "Managed AI agents for non-technical users. Automate everything from email to Kintone workflows.",
     type: "website",

@@ -50,7 +50,7 @@ export default function Features() {
             One AI agent. <span className="gradient-text">Endless capabilities.</span>
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Your OpenClaw agent learns your business and handles the repetitive work,
+            Your DeskAgent learns your business and handles the repetitive work,
             so your team can focus on growth.
           </p>
         </div>

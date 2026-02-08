@@ -9,29 +9,29 @@ export default function Hero() {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-sm mb-8 animate-fade-in-up">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          Powered by OpenClaw AI
+          Your AI Employees
         </div>
 
         {/* Main heading */}
         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 animate-fade-in-up animate-delay-100">
-          Your AI Employee.
+          Your AI Employees.
           <br />
           <span className="gradient-text">No Code Required.</span>
         </h1>
 
         {/* Subheading */}
         <p className="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10 animate-fade-in-up animate-delay-200">
-          A fully managed AI agent that handles your email, calendar, customer support,
+          Fully managed AI agents that handle your email, calendar, customer support,
           and data entry — so you can focus on what matters.
         </p>
 
         {/* CTA buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up animate-delay-300">
           <a
-            href="#waitlist"
+            href="#pricing"
             className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 transition-all text-lg font-semibold glow"
           >
-            Get Early Access →
+            Get Started Now →
           </a>
           <a
             href="#how-it-works"

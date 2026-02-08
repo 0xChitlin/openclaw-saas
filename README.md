@@ -1,134 +1,91 @@
-# OpenClaw SaaS — Your AI Employee. No Code Required.
+# DeskAgents — Your AI Employees
 
-Managed AI agents for non-technical users. Built on top of [OpenClaw](https://github.com/openclaw/openclaw).
+A Next.js SaaS landing page with Stripe checkout integration for DeskAgents, a managed AI employee service.
 
-## What Is This?
+## Features
 
-OpenClaw is a powerful open-source AI agent — but it requires technical skills to set up and run. **OpenClaw SaaS** makes that power accessible to everyone.
+- 🎨 Dark-themed landing page with pricing, features, and use cases
+- 💳 Stripe Checkout integration (subscription billing)
+- 📋 Onboarding flow after successful payment
+- 🔔 Stripe webhook handling for payment events
+- 📝 Waitlist signup (legacy)
 
-We provide **fully managed AI agents** that handle:
-- 📧 Email management & auto-replies
-- 📅 Calendar & scheduling
-- 💬 Customer support (WhatsApp, Telegram, email)
-- 📊 Data entry & CRM automation (Kintone, spreadsheets)
-- 🔄 Workflow automation
+## Pricing Tiers
 
-## Tech Stack
+| Plan | Price | Product Name |
+|------|-------|-------------|
+| Individual | $49/mo | DeskAgent Individual |
+| Business | $199/mo | DeskAgent Business |
+| Enterprise | $999/mo | DeskAgent Enterprise (Contact Us) |
 
-- **Framework:** Next.js 14+ (App Router)
-- **Styling:** Tailwind CSS v4
-- **Language:** TypeScript
-- **Data:** JSON file (MVP) → Supabase/PostgreSQL (production)
-- **Deployment:** Vercel-ready
-- **AI Engine:** OpenClaw (managed instances)
+## Setup
 
-## Getting Started
-
-### Prerequisites
-- Node.js 18+
-- npm
-
-### Installation
+### 1. Install dependencies
 
 ```bash
-git clone <repo-url>
-cd openclaw-saas
 npm install
 ```
 
-### Development
+### 2. Configure environment variables
+
+Copy the example env file:
+
+```bash
+cp .env.example .env.local
+```
+
+Then fill in your Stripe keys:
+
+- `STRIPE_SECRET_KEY` — from [Stripe Dashboard → API Keys](https://dashboard.stripe.com/test/apikeys)
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — from the same page
+- `STRIPE_WEBHOOK_SECRET` — from [Stripe Dashboard → Webhooks](https://dashboard.stripe.com/test/webhooks)
+
+### 3. Run the dev server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the landing page.
+### 4. Set up Stripe webhooks (for local dev)
 
-### Build
-
-```bash
-npm run build
-npm start
-```
-
-### Deploy to Vercel
+Install the [Stripe CLI](https://stripe.com/docs/stripe-cli) and run:
 
 ```bash
-npx vercel
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-Or connect the GitHub repo directly in the [Vercel Dashboard](https://vercel.com).
+Copy the webhook signing secret it provides into your `.env.local`.
 
-> **Note:** For production, replace the JSON file storage with Supabase or another database. The JSON file approach is for MVP/demo purposes only.
+### 5. Deploy to Vercel
 
-## Project Structure
-
-```
-openclaw-saas/
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── waitlist/
-│   │   │       └── route.ts        # Waitlist API endpoint
-│   │   ├── globals.css              # Global styles + animations
-│   │   ├── layout.tsx               # Root layout
-│   │   └── page.tsx                 # Landing page
-│   └── components/
-│       ├── Navbar.tsx               # Fixed navigation
-│       ├── Hero.tsx                 # Hero section
-│       ├── Features.tsx             # Feature grid
-│       ├── UseCases.tsx             # Target audience cards
-│       ├── HowItWorks.tsx           # 4-step process
-│       ├── Pricing.tsx              # 3-tier pricing
-│       ├── Waitlist.tsx             # Signup form
-│       └── Footer.tsx               # Footer
-├── data/
-│   └── waitlist.json                # Waitlist storage (MVP)
-├── ARCHITECTURE.md                  # System architecture doc
-└── README.md                        # This file
+```bash
+vercel --prod
 ```
 
-## Pricing
+Make sure to set the environment variables in your Vercel project settings.
 
-| Plan | Price | Target |
-|------|-------|--------|
-| Individual | $49/mo | Solopreneurs & freelancers |
-| Business | $199/mo | Growing businesses |
-| Enterprise | $999+/mo | Agencies & large teams |
+## API Routes
 
-## Roadmap
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/checkout` | POST | Creates a Stripe Checkout session |
+| `/api/webhooks/stripe` | POST | Handles Stripe webhook events |
+| `/api/onboarding` | POST | Saves customer onboarding data |
+| `/api/waitlist` | POST/GET | Waitlist signup (legacy) |
 
-### Phase 1 — Landing Page + Waitlist ✅
-- [x] Professional landing page
-- [x] Waitlist signup with use case collection
-- [x] Mobile responsive design
-- [x] Vercel-ready deployment
+## Pages
 
-### Phase 2 — Auth + Dashboard
-- [ ] User authentication (NextAuth / Clerk)
-- [ ] Customer dashboard
-- [ ] Agent status monitoring
-- [ ] Activity logs
+- `/` — Landing page with pricing
+- `/success` — Post-payment onboarding page
 
-### Phase 3 — Managed OpenClaw Instances
-- [ ] Provisioning system (one agent per customer)
-- [ ] Docker-based isolation
-- [ ] Kintone integration template
-- [ ] Email + calendar connections
+## Tech Stack
 
-### Phase 4 — Billing & Scale
-- [ ] Stripe subscription integration
-- [ ] Usage tracking & limits
-- [ ] Multi-agent support (Business/Enterprise)
-- [ ] WhatsApp & Telegram integration per customer
+- Next.js 16 (App Router)
+- React 19
+- Tailwind CSS 4
+- Stripe (Checkout Sessions, Webhooks)
+- TypeScript
 
-### Phase 5 — Enterprise
-- [ ] SSO / SAML
-- [ ] White-label option
-- [ ] API access
-- [ ] Custom integrations
-- [ ] SOC 2 compliance
+## Data Storage
 
-## License
-
-Proprietary. All rights reserved.
+Customer and waitlist data is stored in `data/` as JSON files. For production, replace with a proper database.

@@ -15,8 +15,7 @@ export default function Navbar() {
               <span className="text-white font-bold text-sm">⚡</span>
             </div>
             <span className="text-xl font-bold">
-              <span className="gradient-text">OpenClaw</span>
-              <span className="text-gray-400 font-normal ml-1">SaaS</span>
+              <span className="gradient-text">DeskAgents</span>
             </span>
           </div>
 
@@ -32,10 +31,10 @@ export default function Navbar() {
               Pricing
             </a>
             <a
-              href="#waitlist"
+              href="#pricing"
               className="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 transition font-medium"
             >
-              Join Waitlist
+              Get Started
             </a>
           </div>
 
@@ -67,11 +66,11 @@ export default function Navbar() {
               Pricing
             </a>
             <a
-              href="#waitlist"
+              href="#pricing"
               className="block text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-center font-medium"
               onClick={() => setMobileOpen(false)}
             >
-              Join Waitlist
+              Get Started
             </a>
           </div>
         )}
