@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-01-28.clover",
-});
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || key === "sk_test_your_stripe_secret_key") {
+    return null;
+  }
+  return new Stripe(key);
+}
 
 const TIERS: Record<string, { name: string; priceInCents: number }> = {
   individual: {
@@ -29,6 +33,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Invalid pricing tier." },
         { status: 400 }
+      );
+    }
+
+    const stripe = getStripe();
+    if (!stripe) {
+      return NextResponse.json(
+        { error: "Stripe is not configured. Please set STRIPE_SECRET_KEY." },
+        { status: 503 }
       );
     }
 

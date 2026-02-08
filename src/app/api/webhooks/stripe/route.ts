@@ -3,11 +3,13 @@ import Stripe from "stripe";
 import { promises as fs } from "fs";
 import path from "path";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-01-28.clover",
-});
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || key === "sk_test_your_stripe_secret_key") return null;
+  return new Stripe(key);
+}
 
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!;
+const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 const CUSTOMERS_FILE = path.join(process.cwd(), "data", "customers.json");
 
 interface CustomerEntry {
@@ -47,6 +49,11 @@ export async function POST(request: NextRequest) {
 
   if (!sig) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+  }
+
+  const stripe = getStripe();
+  if (!stripe) {
+    return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
   }
 
   let event: Stripe.Event;
