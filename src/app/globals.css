@@ -9,7 +9,125 @@ body {
   color: #0f172a;
 }
 
-/* Clean scrollbar */
+/* ===== Animations ===== */
+
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes gradient-text {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes border-beam {
+  0% { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-100% - var(--gap))); }
+}
+
+@keyframes beam-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shine-border {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes border-beam-move {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* ===== Tailwind v4 Utilities ===== */
+
+@utility animate-shimmer-sweep {
+  animation: shimmer-sweep 2s linear infinite;
+}
+
+@utility animate-gradient-text {
+  animation: gradient-text 4s linear infinite;
+}
+
+@utility animate-border-beam {
+  animation: border-beam-move 12s linear infinite;
+}
+
+@utility animate-marquee {
+  animation: marquee var(--duration, 40s) linear infinite;
+}
+
+@utility animate-beam-pulse {
+  animation: beam-pulse 3s ease-in-out infinite;
+}
+
+@utility animate-glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@utility animate-shine-border {
+  animation: shine-border var(--duration, 8s) linear infinite;
+}
+
+@utility animate-ripple {
+  animation: ripple 4s ease-out infinite;
+}
+
+/* ===== Border beam mask ===== */
+.border-beam-mask {
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  padding: 1px;
+}
+
+/* ===== Shimmer button ===== */
+.shimmer-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-sweep-inner {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--shimmer-color, rgba(255, 255, 255, 0.2)),
+    transparent
+  );
+}
+
+/* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -22,4 +140,21 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* ===== Hero gradient orbs ===== */
+.hero-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* ===== Grid pattern ===== */
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
 }

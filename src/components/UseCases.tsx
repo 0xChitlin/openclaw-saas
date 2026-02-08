@@ -1,57 +1,133 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Store, Rocket, Building2 } from "lucide-react";
+import BlurFade from "@/components/magicui/blur-fade";
+import Marquee from "@/components/magicui/marquee";
+import { Star } from "lucide-react";
 
-const audiences = [
+const testimonials = [
   {
-    icon: Store,
-    title: "Small Business Owners",
-    description:
-      "Stop drowning in admin. Your AI handles invoicing follow-ups, appointment scheduling, and customer inquiries while you run your business.",
+    name: "Sarah Chen",
+    role: "CEO, TechFlow",
+    quote:
+      "DeskAgents saved us 40 hours a week on email alone. It's like hiring a full-time assistant for a fraction of the cost.",
+    avatar: "SC",
   },
   {
-    icon: Rocket,
-    title: "Solopreneurs",
-    description:
-      "Scale without hiring. From inbox management to CRM updates, get the output of a full team at a fraction of the cost.",
+    name: "Marcus Johnson",
+    role: "Founder, GrowthLab",
+    quote:
+      "The calendar management is incredible. I haven't manually scheduled a meeting in 3 months.",
+    avatar: "MJ",
   },
   {
-    icon: Building2,
-    title: "Agencies",
-    description:
-      "Deploy AI agents for each client. Automate workflows, generate reports, and manage more clients without adding headcount.",
+    name: "Elena Rodriguez",
+    role: "Operations Lead, ScaleUp",
+    quote:
+      "Customer support response time went from 4 hours to 2 minutes. Our CSAT scores have never been higher.",
+    avatar: "ER",
+  },
+  {
+    name: "David Kim",
+    role: "Agency Owner, PixelCraft",
+    quote:
+      "We deployed agents for 12 clients in a week. The white-label option is a game-changer for agencies.",
+    avatar: "DK",
+  },
+  {
+    name: "Priya Patel",
+    role: "COO, FinServe",
+    quote:
+      "Data entry errors dropped to zero. The Kintone integration works flawlessly with our existing workflow.",
+    avatar: "PP",
+  },
+  {
+    name: "Tom Anderson",
+    role: "Solopreneur",
+    quote:
+      "I went from spending 3 hours on admin daily to zero. DeskAgents is the best investment I've made this year.",
+    avatar: "TA",
   },
 ];
+
+const firstRow = testimonials.slice(0, 3);
+const secondRow = testimonials.slice(3);
+
+function TestimonialCard({
+  name,
+  role,
+  quote,
+  avatar,
+}: {
+  name: string;
+  role: string;
+  quote: string;
+  avatar: string;
+}) {
+  return (
+    <div className="w-[350px] rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      {/* Stars */}
+      <div className="flex gap-0.5 mb-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star
+            key={i}
+            className="w-4 h-4 fill-amber-400 text-amber-400"
+          />
+        ))}
+      </div>
+
+      <p className="text-sm text-slate-600 leading-relaxed mb-5">
+        &ldquo;{quote}&rdquo;
+      </p>
+
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs font-bold">
+          {avatar}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-slate-900">{name}</p>
+          <p className="text-xs text-slate-400">{role}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function UseCases() {
   return (
     <section id="use-cases" className="py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
-            Who it&apos;s for
-          </h2>
-          <p className="mt-4 text-lg text-slate-500 max-w-2xl mx-auto">
-            If you spend hours on repetitive tasks, you need an AI employee.
-          </p>
-        </div>
+        <BlurFade delay={0}>
+          <div className="text-center mb-16">
+            <p className="text-sm font-semibold uppercase tracking-widest text-amber-600 mb-3">
+              Testimonials
+            </p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
+              Loved by businesses
+              <br />
+              <span className="text-slate-400">of every size</span>
+            </h2>
+            <p className="mt-4 text-lg text-slate-500 max-w-2xl mx-auto">
+              Join hundreds of companies that have hired their AI employee.
+            </p>
+          </div>
+        </BlurFade>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {audiences.map((item, idx) => (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
-              className="rounded-xl border border-slate-200 bg-white p-8 hover:shadow-lg hover:shadow-slate-100 transition-shadow duration-300"
-            >
-              <item.icon className="w-8 h-8 text-amber-500 mb-4" strokeWidth={1.5} />
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">{item.title}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">{item.description}</p>
-            </motion.div>
-          ))}
+        {/* Testimonial marquees */}
+        <div className="relative space-y-4">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent z-10" />
+
+          <Marquee speed={45} pauseOnHover>
+            {firstRow.map((t) => (
+              <TestimonialCard key={t.name} {...t} />
+            ))}
+          </Marquee>
+
+          <Marquee speed={45} reverse pauseOnHover>
+            {secondRow.map((t) => (
+              <TestimonialCard key={t.name} {...t} />
+            ))}
+          </Marquee>
         </div>
       </div>
     </section>
