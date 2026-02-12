@@ -1,33 +1,25 @@
 # DeskAgents — Agent Runtime Backend
 
-The production backend that manages AI agents for DeskAgents SaaS customers.
+Backend server for DeskAgents SaaS. Manages autonomous agent workers (email categorizer, support auto-responder, scheduler) with a REST API for administration and customer self-service.
 
 ## Architecture
 
 ```
-server/
-├── src/
-│   ├── index.ts              # Express server (port 4000)
-│   ├── db/
-│   │   ├── schema.sql        # SQLite schema
-│   │   └── init.ts           # Database initialization + helpers
-│   ├── agents/
-│   │   ├── manager.ts        # Agent lifecycle manager (start/stop/restart/health)
-│   │   └── workers/
-│   │       ├── email-agent.ts     # IMAP email monitoring + categorization + daily digest
-│   │       ├── support-agent.ts   # Auto-reply support + FAQ + escalation
-│   │       └── scheduler-agent.ts # Cron-based scheduled tasks + reports
-│   ├── routes/
-│   │   ├── admin.ts          # Admin API (JWT protected)
-│   │   ├── customer.ts       # Customer API (JWT protected)
-│   │   ├── provision.ts      # Customer + agent provisioning
-│   │   ├── health.ts         # Health check endpoint
-│   │   └── auth.ts           # Login/auth
-│   └── middleware/
-│       └── auth.ts           # JWT auth middleware
-├── Dockerfile
-├── package.json
-└── tsconfig.json
+┌─────────────────────────────────────────┐
+│            Express REST API             │
+│  /api/admin  /api/customer  /api/health │
+├─────────────────────────────────────────┤
+│            Agent Manager                │
+│  start / stop / restart / healthCheck   │
+├──────────┬──────────┬───────────────────┤
+│  Email   │ Support  │    Scheduler      │
+│  Worker  │ Worker   │    Worker         │
+│ (IMAP+   │ (IMAP+   │  (node-cron +    │
+│  classify)│ auto-reply)│  email digest) │
+├──────────┴──────────┴───────────────────┤
+│        SQLite (better-sqlite3)          │
+│  customers │ agents │ logs │ integrations│
+└─────────────────────────────────────────┘
 ```
 
 ## Quick Start
@@ -36,61 +28,65 @@ server/
 # Install dependencies
 npm install
 
-# Build
-npm run build
+# Copy environment config
+cp .env.example .env
 
-# Run
+# Development (with hot reload)
+npm run dev
+
+# Production build
+npm run build
 npm start
 ```
 
-Server starts on `http://localhost:4000`.
-
 ## API Endpoints
 
-### Public
-- `GET /api/health` — Health check
-- `POST /api/auth/login` — Login (admin or customer)
-- `POST /api/provision` — Create customer + agent
+### Health
+- `GET /api/health` — Server health + agent runtime status
 
-### Admin (JWT required, admin role)
+### Admin (requires `x-api-key` header or admin JWT)
 - `GET /api/admin/customers` — List all customers
 - `GET /api/admin/agents` — List all agents with runtime status
 - `POST /api/admin/agents/:id/start` — Start an agent
 - `POST /api/admin/agents/:id/stop` — Stop an agent
 - `POST /api/admin/agents/:id/restart` — Restart an agent
-- `GET /api/admin/agents/:id/logs` — Get agent logs
-- `GET /api/admin/stats` — Dashboard statistics
+- `GET /api/admin/agents/:id/logs?type=info|error|action&limit=50` — Agent logs
+- `GET /api/admin/stats` — Dashboard stats
 
-### Customer (JWT required, customer role)
-- `GET /api/customer/agent` — My agent status
-- `GET /api/customer/logs` — My agent activity logs
-- `PATCH /api/customer/agent` — Pause/resume my agent
+### Customer (requires JWT Bearer token)
+- `GET /api/customer/agent` — Get your agent
+- `GET /api/customer/logs` — Get your agent's logs
+- `PATCH /api/customer/agent` — Pause/resume (`{ "action": "pause" | "resume" }`)
 - `POST /api/customer/integrations` — Add integration
+
+### Provisioning (admin auth)
+- `POST /api/provision` — Create customer + agent
 
 ## Agent Templates
 
-### email-manager
-Monitors IMAP inbox, categorizes emails (urgent/follow-up/newsletter/spam), sends daily digest.
-
-### customer-support
-Auto-replies to common support questions using FAQ matching, escalates unknown issues.
-
-### scheduler
-Runs cron-based tasks — daily reports, weekly summaries, custom schedules.
-
-## Default Admin
-
-On first run, a default admin is created:
-- Email: `admin@deskagents.com`
-- Password: `deskagents-admin-2024` (change via `ADMIN_PASSWORD` env var)
+| Template | Description |
+|----------|-------------|
+| `email` / `email-agent` | IMAP inbox monitor — categorizes emails (urgent, newsletter, billing, support) |
+| `support` / `support-agent` | Auto-reply FAQ support bot with escalation |
+| `scheduler` / `scheduler-agent` | Cron-based scheduled jobs (daily digest, weekly reports) |
 
 ## Docker
 
 ```bash
-# Build and run with docker-compose (from project root)
-docker-compose up --build
+# Build and run
+docker-compose up -d
+
+# Or build manually
+docker build -t deskagents-server .
+docker run -p 4000:4000 -v deskagents-data:/app/data deskagents-server
 ```
 
-## Environment Variables
+## Tech Stack
 
-See `.env.example` for all options.
+- **Runtime:** Node.js 20+, TypeScript
+- **Framework:** Express 4
+- **Database:** SQLite via better-sqlite3
+- **IMAP:** imapflow
+- **SMTP:** nodemailer
+- **Scheduler:** node-cron
+- **Auth:** JWT + API key

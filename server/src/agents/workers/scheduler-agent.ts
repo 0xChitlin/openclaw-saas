@@ -3,203 +3,32 @@ import nodemailer from "nodemailer";
 import { getDb, logAgent } from "../../db/init";
 import type { AgentWorker } from "../manager";
 
-interface ScheduledTask {
-  id: string;
-  name: string;
-  cron: string;
-  type: "daily-report" | "weekly-summary" | "custom";
-  config: Record<string, unknown>;
-}
-
 export class SchedulerAgent implements AgentWorker {
-  private agentId: string;
-  private config: any;
-  private cronJobs: cron.ScheduledTask[] = [];
+  private agentId: string; private config: any;
+  private jobs: cron.ScheduledTask[] = [];
   private status: "running" | "stopped" | "error" = "stopped";
-  private taskCount = 0;
 
-  constructor(agentId: string, config: any) {
-    this.agentId = agentId;
-    this.config = config;
-  }
+  constructor(id: string, config: any) { this.agentId = id; this.config = config; }
 
-  async start(): Promise<void> {
-    try {
-      const tasks: ScheduledTask[] = this.config.tasks || this.getDefaultTasks();
-
-      for (const task of tasks) {
-        if (!cron.validate(task.cron)) {
-          logAgent(this.agentId, "error", `Invalid cron expression for task "${task.name}": ${task.cron}`);
-          continue;
+  async start() {
+    const tasks = this.config.tasks || [{ name: "Daily Report", cron: "0 18 * * *", type: "daily" }, { name: "Weekly Summary", cron: "0 9 * * 1", type: "weekly" }];
+    for (const t of tasks) {
+      if (!cron.validate(t.cron)) continue;
+      this.jobs.push(cron.schedule(t.cron, () => {
+        const db = getDb();
+        if (t.type === "daily") {
+          const logs = db.prepare("SELECT type, COUNT(*) as c FROM agent_logs WHERE agent_id = ? AND date(created_at) = date('now') GROUP BY type").all(this.agentId) as any[];
+          logAgent(this.agentId, "action", "Daily report: " + logs.map((r: any) => r.type + "=" + r.c).join(", "));
+        } else {
+          const logs = db.prepare("SELECT type, COUNT(*) as c FROM agent_logs WHERE agent_id = ? AND created_at >= datetime('now', '-7 days') GROUP BY type").all(this.agentId) as any[];
+          logAgent(this.agentId, "action", "Weekly summary: " + logs.map((r: any) => r.type + "=" + r.c).join(", "));
         }
-
-        const job = cron.schedule(task.cron, () => {
-          this.executeTask(task).catch((err: Error) => {
-            logAgent(this.agentId, "error", `Task "${task.name}" failed: ${err.message}`);
-          });
-        });
-
-        this.cronJobs.push(job);
-        logAgent(this.agentId, "info", `Scheduled task "${task.name}" with cron: ${task.cron}`);
-      }
-
-      this.status = "running";
-      logAgent(this.agentId, "info", `Scheduler agent started with ${this.cronJobs.length} tasks`);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      logAgent(this.agentId, "error", `Failed to start scheduler: ${message}`);
-      this.status = "error";
-      throw err;
+      }));
+      logAgent(this.agentId, "info", "Scheduled: " + t.name + " (" + t.cron + ")");
     }
+    this.status = "running";
   }
 
-  async stop(): Promise<void> {
-    for (const job of this.cronJobs) {
-      job.stop();
-    }
-    this.cronJobs = [];
-    this.status = "stopped";
-    logAgent(this.agentId, "info", `Scheduler agent stopped. Total tasks executed: ${this.taskCount}`);
-  }
-
-  getStatus(): "running" | "stopped" | "error" {
-    return this.status;
-  }
-
-  private getDefaultTasks(): ScheduledTask[] {
-    return [
-      {
-        id: "daily-report",
-        name: "Daily Activity Report",
-        cron: "0 18 * * *",
-        type: "daily-report",
-        config: {},
-      },
-      {
-        id: "weekly-summary",
-        name: "Weekly Summary",
-        cron: "0 9 * * 1",
-        type: "weekly-summary",
-        config: {},
-      },
-    ];
-  }
-
-  private async executeTask(task: ScheduledTask): Promise<void> {
-    this.taskCount++;
-    logAgent(this.agentId, "action", `Executing task: ${task.name}`);
-
-    switch (task.type) {
-      case "daily-report":
-        await this.generateDailyReport();
-        break;
-      case "weekly-summary":
-        await this.generateWeeklySummary();
-        break;
-      case "custom":
-        await this.executeCustomTask(task);
-        break;
-      default:
-        logAgent(this.agentId, "error", `Unknown task type: ${task.type}`);
-    }
-  }
-
-  private async generateDailyReport(): Promise<void> {
-    const db = getDb();
-
-    const logs = db
-      .prepare(
-        `SELECT * FROM agent_logs
-         WHERE agent_id = ? AND date(created_at) = date('now')
-         ORDER BY created_at DESC`
-      )
-      .all(this.agentId) as any[];
-
-    const actions = logs.filter((l: any) => l.type === "action");
-    const errors = logs.filter((l: any) => l.type === "error");
-
-    const report = [
-      `Daily Activity Report - ${new Date().toLocaleDateString()}`,
-      `Agent: ${this.agentId}`,
-      `Total log entries today: ${logs.length}`,
-      `Actions taken: ${actions.length}`,
-      `Errors: ${errors.length}`,
-      "",
-      "Recent Actions:",
-      ...(actions.slice(0, 10).map((a: any) => `  - ${a.message}`)),
-      ...(errors.length > 0 ? ["", "Errors:", ...errors.map((e: any) => `  ! ${e.message}`)] : []),
-    ].join("\n");
-
-    logAgent(this.agentId, "action", `Daily report generated: ${actions.length} actions, ${errors.length} errors`);
-
-    if (this.config.report_email) {
-      await this.sendEmail(this.config.report_email, `Daily Report - ${new Date().toLocaleDateString()}`, report);
-    }
-  }
-
-  private async generateWeeklySummary(): Promise<void> {
-    const db = getDb();
-
-    const logs = db
-      .prepare(
-        `SELECT type, COUNT(*) as count FROM agent_logs
-         WHERE agent_id = ? AND created_at >= datetime('now', '-7 days')
-         GROUP BY type`
-      )
-      .all(this.agentId) as any[];
-
-    const summary: Record<string, number> = {};
-    for (const row of logs) {
-      summary[row.type] = row.count;
-    }
-
-    const total = Object.values(summary).reduce((a, b) => a + b, 0);
-
-    const report = [
-      `Weekly Summary - Week of ${new Date().toLocaleDateString()}`,
-      `Agent: ${this.agentId}`,
-      "",
-      `Info: ${summary.info || 0}`,
-      `Actions: ${summary.action || 0}`,
-      `Errors: ${summary.error || 0}`,
-      `Total events: ${total}`,
-    ].join("\n");
-
-    logAgent(this.agentId, "action", "Weekly summary generated");
-
-    if (this.config.report_email) {
-      await this.sendEmail(this.config.report_email, `Weekly Summary - ${new Date().toLocaleDateString()}`, report);
-    }
-  }
-
-  private async executeCustomTask(task: ScheduledTask): Promise<void> {
-    logAgent(this.agentId, "action", `Custom task "${task.name}" executed`);
-  }
-
-  private async sendEmail(to: string, subject: string, text: string): Promise<void> {
-    if (!this.config.smtp) return;
-
-    const transporter = nodemailer.createTransport({
-      host: this.config.smtp.host || "smtp.gmail.com",
-      port: this.config.smtp.port || 587,
-      secure: false,
-      auth: {
-        user: this.config.smtp.user,
-        pass: this.config.smtp.pass,
-      },
-    });
-
-    try {
-      await transporter.sendMail({
-        from: this.config.smtp.user,
-        to,
-        subject,
-        text,
-      });
-      logAgent(this.agentId, "info", `Report email sent to ${to}`);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      logAgent(this.agentId, "error", `Failed to send report email: ${message}`);
-    }
-  }
+  async stop() { for (const j of this.jobs) j.stop(); this.jobs = []; this.status = "stopped"; }
+  getStatus(): "running" | "stopped" | "error" { return this.status; }
 }

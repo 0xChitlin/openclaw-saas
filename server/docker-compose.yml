@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  server:
+    build: .
+    ports:
+      - '4000:4000'
+    volumes:
+      - deskagents-data:/app/data
+    environment:
+      - PORT=4000
+      - DB_PATH=/app/data/deskagents.db
+      - JWT_SECRET=${JWT_SECRET:-deskagents-dev-secret}
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-deskagents-admin-key}
+    restart: unless-stopped
+
+volumes:
+  deskagents-data:
